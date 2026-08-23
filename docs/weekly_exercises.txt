@@ -1,0 +1,74 @@
+Week 1: RAG Concepts and Local AI Environment Setup
+
+Goal: Understand the motivation behind RAG and get Foundry Local running on your machine.
+
+Day 1-2: Introduction to RAG
+Read the "What is RAG?" section of the project documentation. Explain to a peer why a general-purpose LLM might give wrong answers when asked about a company's internal policies, and how RAG fixes this. Key terms to know: parametric memory, retrieval, augmentation, hallucination.
+
+Day 3-4: Foundry Local Installation
+Install foundry-local-sdk using pip. Verify by running a short Python script that loads qwen2.5-1.5b and generates the output for the prompt "Hello, I am a local AI assistant." If the model responds correctly, installation is successful.
+
+Day 5: Project Skeleton
+Create the project folder structure. At minimum you need: main.py (entry point), config.py (constants), docs/ (knowledge base folder). Commit to git so you have a clean starting point.
+
+Milestone: Foundry Local installed, "Hello Model" test passing, skeleton project created.
+
+Week 2: Embeddings, Vector Search, and SQLite
+
+Goal: Understand and implement the two core retrieval primitives: embedding generation and cosine similarity search.
+
+Day 1-2: Embeddings
+Use qwen3-embedding-0.6b via EmbeddingClient.generate_embedding() to convert five sentences into vectors. Print the vectors' lengths. Compare the cosine similarity between a query and each sentence manually using a calculator or short Python script.
+
+Day 3: SQLite Basics
+Create a test database with a table: CREATE TABLE test (id INTEGER PRIMARY KEY, text TEXT, vec TEXT). Insert three rows where vec is a JSON-serialised list. Read them back and deserialise with json.loads().
+
+Day 4-5: Chunking Strategy
+Read three short articles (plain text). Split each into overlapping windows of 1000 characters with 200-character overlap. Count how many chunks are produced. Discuss: what chunk size is too small? Too large?
+
+Milestone: Can embed text, store in SQLite, retrieve by cosine similarity in pure Python.
+
+Week 3: Data Ingestion Pipeline
+
+Goal: Build and test the full ingestion pipeline from raw documents to a populated vector database.
+
+Day 1-2: ingestion.py
+Write a script that reads every .txt and .md file from the docs/ folder, splits each into sliding-window chunks, embeds each chunk with qwen3-embedding-0.6b, and inserts (source, chunk_index, chunk_text, embedding) rows into local_rag.db. Add a --force flag to wipe and re-ingest.
+
+Day 3-4: retriever.py
+Write a retrieve(query, top_k=3) function. It should embed the query, load all rows from the database, compute cosine similarity for each, and return the top_k rows sorted by score descending.
+
+Day 5: Integration Test
+Ingest rag_overview.txt. Then call retrieve("What is cosine similarity?") and verify the returned chunk contains the cosine similarity formula.
+
+Milestone: Populated SQLite database, working retrieval function validated against known documents.
+
+Week 4: LLM Integration and Application Assembly
+
+Goal: Connect retrieval to generation and expose the system through a usable interface.
+
+Day 1-2: generator.py
+Write an answer(question) function. It calls retrieve() to get the top chunks, assembles a system+user prompt (context first, then the question), and calls ChatClient.complete_chat(). Return both the answer string and the list of source filenames.
+
+Day 3: System Prompt Tuning
+Experiment with variations of the system prompt. Try: (a) no system prompt, (b) a permissive prompt ("answer the question"), (c) the strict prompt ("use ONLY the context"). Document how the answers differ on a question that is NOT covered by your documents.
+
+Day 4-5: CLI Polish
+Finalise main.py so that it auto-ingests on first run if the database is empty. Implement the :re-ingest and :quit commands. Test with at least ten diverse questions.
+
+Milestone: End-to-end working CLI Q&A chatbot, fully offline, with source attribution.
+
+Week 5: Testing, Evaluation, and Documentation
+
+Goal: Validate correctness, identify failure modes, and write project documentation.
+
+Day 1-2: Test Suite
+Create a file test_cases.txt with 20 questions: 10 answerable from rag_overview.txt, 10 that are not (off-topic). Run all 20 through the system and record: correct answer, fallback triggered, or hallucination. Target: 100% fallback on off-topic, ≥80% correct on answerable.
+
+Day 3: Chunk Quality Audit
+Review retrieved chunks for three failed questions. Were the right chunks retrieved but the model summarised wrongly, or were wrong chunks retrieved? Adjust chunk_size or overlap accordingly and re-test.
+
+Day 4-5: README
+Write README.md covering: project purpose, installation steps (pip install foundry-local-sdk), how to add documents (drop .txt/.md into docs/), how to run (python main.py), architecture overview (chunker → ingestion → retriever → generator), and known limitations.
+
+Milestone: Test results documented, README complete, code clean and comment-free.

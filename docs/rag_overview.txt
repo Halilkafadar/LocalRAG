@@ -1,0 +1,41 @@
+What is Retrieval-Augmented Generation (RAG)?
+
+Retrieval-Augmented Generation (RAG) is an AI design pattern that combines information retrieval with language model generation. Instead of relying solely on a model's parametric memory, RAG systems retrieve relevant documents from an external knowledge base and provide them as context to the model at inference time. This approach significantly reduces hallucinations, keeps answers grounded in verifiable sources, and allows knowledge to be updated without retraining the model.
+
+A RAG pipeline consists of three main stages:
+1. Retrieve: Given a user query, semantically search a vector database to find the most relevant document chunks.
+2. Augment: Prepend the retrieved text to the model's prompt as context.
+3. Generate: The language model produces an answer conditioned on both the query and the retrieved context.
+
+What is Microsoft Foundry Local?
+
+Microsoft Foundry Local is an end-to-end on-device AI solution that provides a lightweight runtime and SDK for running large language models entirely on a user's computer. It requires no cloud account and no internet connection after the initial model download. Foundry Local automatically manages model storage and uses CPU, GPU, or NPU acceleration depending on the hardware available.
+
+Key features of Foundry Local:
+- Offline inference: Models run locally with zero network calls at inference time.
+- Model catalog: A curated set of optimised models including qwen2.5-1.5b and qwen3-embedding-0.6b.
+- Python SDK: The foundry_local_sdk package exposes ChatClient and EmbeddingClient for easy integration.
+- Cross-platform: Runs on Windows and macOS.
+
+What is an embedding?
+
+A text embedding is a fixed-length numerical vector that encodes the semantic meaning of a piece of text. Similar sentences produce vectors that are close together in the high-dimensional embedding space. This property makes embeddings ideal for semantic search: given a query vector, we can rank all stored document vectors by their cosine similarity to the query and retrieve the most relevant passages.
+
+Cosine similarity between two vectors A and B is defined as:
+  cos(A, B) = (A · B) / (||A|| * ||B||)
+
+A value of 1.0 means the vectors are identical in direction (highly similar), 0 means orthogonal (unrelated), and -1 means opposite.
+
+What is SQLite?
+
+SQLite is a self-contained, serverless, zero-configuration relational database engine. The entire database is stored in a single file on disk. Python ships with the sqlite3 module in its standard library, so no additional installation is needed.
+
+In this RAG system, SQLite stores each document chunk together with its embedding vector serialised as a JSON string. At query time, all embeddings are loaded into memory and compared against the query embedding using cosine similarity. For small to medium-sized document collections (tens of thousands of chunks) this brute-force approach is fast enough and avoids the complexity of a dedicated vector database.
+
+What is prompt engineering?
+
+Prompt engineering is the practice of crafting the input text sent to a language model to guide its output. For a RAG Q&A assistant the most important prompt components are:
+- System message: Sets the model's persona and constraints, for example: "Answer only using the provided context. If the answer is not in the context, say you don't know."
+- User message: Contains the retrieved context passages followed by the actual question.
+
+A well-designed system prompt prevents the model from fabricating answers when information is absent and keeps responses concise and factual.
